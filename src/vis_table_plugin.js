@@ -87,6 +87,23 @@ const tableModelCoreOptions = {
     order: 7
   },
 
+  varNumFormat: {
+    section: 'Theme',
+    type: 'string',
+    display_size: 'half',
+    label: "Var # format",
+    default: "0;(0)",
+    order: 8
+  },
+  varPctFormat: {
+    section: 'Theme',
+    type: 'string',
+    display_size: 'half',
+    label: "Var % format",
+    default: "0%;(0%)",
+    order: 9
+  },
+
   columnOrder: {},
   
   rowSubtotals: {
@@ -175,6 +192,13 @@ const tableModelCoreOptions = {
     default: false,
     order: 10,
   },
+  varianceForLastPivotColumnOnly: {
+    section: "Table",
+    type: "boolean",
+    label: "Show Variance columns for last pivot column only",
+    default: false,
+    order: 10,
+  },
   genericLabelForSubtotals: {
     section: 'Table',
     type: 'boolean',
@@ -247,9 +271,12 @@ class VisPluginTableModel {
     this.sortColsBy = config.sortColumnsBy || 'pivots' // matches to Column methods: pivots(), measures)
     this.fieldLevel = 0 // set in addPivotsAndHeaders()
     this.groupVarianceColumns = config.groupVarianceColumns || false
+    this.varianceForLastPivotColumnOnly = config.varianceForLastPivotColumnOnly || false
     this.minWidthForIndexColumns = config.minWidthForIndexColumns || false
     this.showTooltip = config.showTooltip || false
     this.showHighlight = config.showHighlight || false
+    this.varNumFormat = config.varNumFormat || ""
+    this.varPctFormat = config.varPctFormat || ""
     this.genericLabelForSubtotals = config.genericLabelForSubtotals || false
 
     this.sorts = queryResponse.sorts
@@ -1526,7 +1553,7 @@ class VisPluginTableModel {
       if (calc === 'absolute') {
         var cell = new DataCell({
           value: baseline_value - comparison_value,
-          rendered: value_format === '' ? (baseline_value - comparison_value).toString() : SSF.format(value_format, (baseline_value - comparison_value)),
+          rendered: this.varNumFormat === '' ? SSF.format(value_format, (baseline_value - comparison_value)) : SSF.format(this.varNumFormat, (baseline_value - comparison_value)),
           cell_style: ['numeric', 'measure', 'variance', 'varianceAbsolute'],
           colid: id,
           rowid: row.id
@@ -1544,7 +1571,7 @@ class VisPluginTableModel {
         } else {
           var cell = new DataCell({
             value: value,
-            rendered: SSF.format('#0.00%', value),
+            rendered: SSF.format(this.varPctFormat, value),
             cell_style: ['numeric', 'measure', 'variance', 'variancePercent'],
             colid: id,
             rowid: row.id
@@ -1677,14 +1704,16 @@ class VisPluginTableModel {
           }
         } else if (variance.type === 'by_pivot') { 
           if (this.pivot_fields.length === 1 || this.pivot_fields[1].name === variance.comparison) {
-            this.pivot_values.slice(1).forEach((pivot_value, index) => {
+            var pivot_values = this.varianceForLastPivotColumnOnly ? this.pivot_values.slice(1).slice(-1) : this.pivot_values.slice(1)
+            var comparisons = this.varianceForLastPivotColumnOnly ? this.pivot_values.slice(-2,-1) : this.pivot_values
+            pivot_values.forEach((pivot_value, index) => {
               calcs.forEach(calc => {
                 if (!pivot_value.is_total) {
                   variance_colpairs.push({
                     calc: calc,
                     variance: {
                       baseline: [pivot_value.key, variance.baseline].join('.'),
-                      comparison: [this.pivot_values[index].key, variance.baseline].join('.'),
+                      comparison: [comparisons[index].key, variance.baseline].join('.'),
                       reverse: variance.reverse,
                       type: variance.type
                     }
