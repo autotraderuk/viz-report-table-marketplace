@@ -199,6 +199,13 @@ const tableModelCoreOptions = {
     default: false,
     order: 10,
   },
+  limitDisplayedPivotColumns: {
+    section: "Table",
+    type: "string",
+    label: "Show last n pivot columns only (leave blank to show all)",
+    default: "",
+    order: 10,
+  },
   genericLabelForSubtotals: {
     section: 'Table',
     type: 'boolean',
@@ -272,6 +279,7 @@ class VisPluginTableModel {
     this.fieldLevel = 0 // set in addPivotsAndHeaders()
     this.groupVarianceColumns = config.groupVarianceColumns || false
     this.varianceForLastPivotColumnOnly = config.varianceForLastPivotColumnOnly || false
+    this.limitDisplayedPivotColumns = parseInt(config.limitDisplayedPivotColumns)
     this.minWidthForIndexColumns = config.minWidthForIndexColumns || false
     this.showTooltip = config.showTooltip || false
     this.showHighlight = config.showHighlight || false
@@ -609,7 +617,6 @@ class VisPluginTableModel {
         queryResponseField: measure,
         can_pivot: true
       })
-
       var reportInSetting = this.config['reportIn|' + measure.name]
       var unitSetting = this.config['unit|' + measure.name]
       if (typeof reportInSetting !== 'undefined'  && reportInSetting !== '1') {
@@ -623,13 +630,14 @@ class VisPluginTableModel {
     
     // add measures, list of full objects
     if (this.hasPivots) {
-      this.pivot_values.forEach(pivot_value => {
+      this.pivot_values.forEach((pivot_value, pivot_index) => {
         var isRowTotal = pivot_value.key === '$$$_row_total_$$$'
         this.measures.forEach((measure, m) => {
           // for pivoted measures, skip table calcs for row totals 
           // if user wants a row total of a table calc, it must be defined as another table calc (in which case, it will be a supermeasure)
-          var include_measure = !isRowTotal || ( isRowTotal && !measure.is_table_calculation )
-          
+          let hide_measure = this.config.limitDisplayedPivotColumns > 0 && (pivot_index < this.pivot_values.length - this.limitDisplayedPivotColumns)
+          var include_measure = (!isRowTotal || ( isRowTotal && !measure.is_table_calculation )) && !hide_measure
+
           if (include_measure) {
             var column = new Column([pivot_value.key, measure.name].join('.'), this, measure)
             column.pivoted = isRowTotal ? false : true
@@ -2262,7 +2270,7 @@ class VisPluginTableModel {
         if (column.modelField.type === 'dimension' && !column.hide) {
           indexColumns.push({ id: column.id, type: 'index' })
         } else if (column.modelField.type === 'measure' && !column.isRowTotal && !column.super && !column.hide) {
-          measureColumns.push({ id: column.id, type: 'dataCell' })
+          // measureColumns.push({ id: column.id, type: 'dataCell' })
         } else if (column.modelField.type === 'measure' && (column.isRowTotal || column.super) && !column.hide) {
           totalColumns.push({ id: column.id, type: 'dataCell' })
         }
