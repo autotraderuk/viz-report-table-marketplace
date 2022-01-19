@@ -226,7 +226,9 @@ const buildReportTable = function(config, dataTable, updateColumnOrder, element)
           }
           
           var colElement = document.getElementById(id)
-          colElement.classList.toggle('hover')
+          if(colElement) {
+            colElement.classList.toggle('hover')
+          }
         }
         
         if (dataTable.showTooltip && d.cell_style.includes('measure')) {
@@ -261,7 +263,10 @@ const buildReportTable = function(config, dataTable, updateColumnOrder, element)
             var id = ['col', d.rowid].join('').replace('.', '')
           }
           var colElement = document.getElementById(id)
-          colElement.classList.toggle('hover')
+          if(colElement)
+          {
+            colElement.classList.toggle('hover')
+          }
         }
         
         if (dataTable.showTooltip  && d.cell_style.includes('measure')) {

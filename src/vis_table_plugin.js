@@ -636,7 +636,7 @@ class VisPluginTableModel {
           // for pivoted measures, skip table calcs for row totals 
           // if user wants a row total of a table calc, it must be defined as another table calc (in which case, it will be a supermeasure)
           let hide_measure = this.config.limitDisplayedPivotColumns > 0 && (pivot_index < this.pivot_values.length - this.limitDisplayedPivotColumns)
-          var include_measure = (!isRowTotal || ( isRowTotal && !measure.is_table_calculation )) && !hide_measure
+          var include_measure = (!isRowTotal || ( isRowTotal && !measure.is_table_calculation ))
 
           if (include_measure) {
             var column = new Column([pivot_value.key, measure.name].join('.'), this, measure)
@@ -644,6 +644,7 @@ class VisPluginTableModel {
             column.isRowTotal = isRowTotal
             column.pivot_key = pivot_value.key
             column.idx = col_idx
+            column.hide = hide_measure
 
             var tempSort = []
             var level_sort_values = []
