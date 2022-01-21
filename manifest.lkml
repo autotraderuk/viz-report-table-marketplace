@@ -6,7 +6,7 @@ constant: VIS_LABEL {
 }
 
 constant: VIS_ID {
-  value: "report_table-marketplace-custom"
+  value: "report_table-marketplace-at-custom"
   export:  override_optional
 }
 
