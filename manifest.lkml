@@ -12,6 +12,6 @@ constant: VIS_ID {
 
 visualization: {
   id: "@{VIS_ID}"
-  url: "https://engineering.autotrader.co.uk/viz-report-table-marketplace/report_table.js"
+  url: "https://raw.githubusercontent.com/autotraderuk/viz-report-table-marketplace/refs/heads/at_custom_changes/report_table.js"
   label: "@{VIS_LABEL}"
 }
